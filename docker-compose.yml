@@ -1,0 +1,7 @@
+version: '3'
+services:
+  sipmap_operation_a:
+    build: .
+    command: sleep 3600
+#  redis:
+#    image: "redis:alpine"
