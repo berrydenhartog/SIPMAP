@@ -16,29 +16,24 @@ except Exception as e:
 channel = connection.channel()
 
 # check if queue exist. else create
-channel.queue_declare(queue='hello')
+channel.queue_declare(queue='DSCIN')
+channel.queue_declare(queue='THMANI')
 
-trace={
-    VERSION: 1.0,
-    TRACEHEADER: {
-        SSP: "hello",
-        POS: 1,
-        SEQ: 0
-    },
-    TRACEDATA: [
-        1.233,
-        1.234,
-        1.234,
-    ]   
-}
+# get traces
+for method_frame, properties, body in channel.consume('DSCIN'):
 
-# initialization phase
+    #Receive trace from DSCIN
+    mytrace = json.loads(body)
+    print("THMANI" + json.dumps(mytrace), flush=True)
 
-# execution phase
-for i in range(0,100):
-    trace[TRACEHEADER][SEQ]=i
-    channel.basic_publish(exchange='test', routing_key='test', body=json.dumps(trace))
-    time.sleep(1)
+    # call fortran operation    
 
-# finalization phase
+    # Send trace to next operation
+    channel.basic_publish(exchange='', routing_key='THMANI', body=json.dumps(mytrace))
+
+    # on end stop
+    if "END" in mytrace.keys():
+        if mytrace["END"] == True:
+            break 
+
 connection.close()

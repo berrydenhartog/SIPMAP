@@ -16,7 +16,7 @@ except Exception as e:
 channel = connection.channel()
 
 # check if queue exist. else create
-channel.queue_declare(queue='hello')
+channel.queue_declare(queue='DSCIN')
 
 
 trace={
@@ -35,9 +35,12 @@ trace={
 
 # push a message to rabbitmq
 for i in range(0,100):
+    print("sending trace",i, flush=True)
     trace["TRACEHEADER"]["SEQ"]=i
-    channel.basic_publish(exchange='', routing_key='test', body=json.dumps(trace))
-    time.sleep(1)
+    channel.basic_publish(exchange='', routing_key='DSCIN', body=json.dumps(trace))
+
+# send end of data 
+channel.basic_publish(exchange='', routing_key='DSCIN', body=json.dumps({"END":True}))
 
 # close connection
 connection.close()

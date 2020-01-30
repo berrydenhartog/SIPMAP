@@ -16,28 +16,21 @@ except Exception as e:
 channel = connection.channel()
 
 # check if queue exist. else create
-channel.queue_declare(queue='hello')
+channel.queue_declare(queue='THMANI')
 
+# get traces
+for method_frame, properties, body in channel.consume('THMANI'):
 
-trace={
-    VERSION: 1.0,
-    TRACEHEADER: {
-        SSP: "hello",
-        POS: 1,
-        SEQ: 0
-    },
-    TRACEDATA: [
-        1.233,
-        1.234,
-        1.234,
-    ]   
-}
+    #Receive trace from DSCIN
+    mytrace = json.loads(body)
+    print("DSCOUT" + json.dumps(mytrace), flush=True)
+    print(mytrace)
 
-# push a message to rabbitmq
-for i in range(0,100):
-    trace[TRACEHEADER][SEQ]=i
-    channel.basic_publish(exchange='test', routing_key='test', body=json.dumps(trace))
-    time.sleep(1)
+    # call fortran operation 
 
-# close connection
+    # on end stop
+    if "END" in mytrace.keys():
+        if mytrace["END"] == True:
+            break 
+
 connection.close()

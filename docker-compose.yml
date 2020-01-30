@@ -1,11 +1,11 @@
 version: '3'
 services:
-  sipmap_operation_a:
+  dscin:
     build: dscin/
-  sipmap_operation_b:
+  thmani:
     build: thmani/
-  #sipmap_operation_c:
-  #  build: dscout/ 
+  dscout:
+    build: dscout/
   rabbitmq:
     hostname: rabbitmq
     image: "rabbitmq:3.8.2-management-alpine"
