@@ -27,4 +27,7 @@ We could do two things with SAF/SIGNAR. We could add a REDIS service where we ca
 management console is available here: http://localhost:15672/
 login: guest,guest
 
+# special operations
+## PARSTR
+using a fanout exchange will be similair to how PARSTR works now
 

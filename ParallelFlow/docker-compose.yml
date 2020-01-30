@@ -2,7 +2,9 @@ version: '3'
 services:
   dscin:
     build: dscin/
-  thmani:
+  thmani1:
+    build: thmani/
+  thmani2:
     build: thmani/
   dscout:
     build: dscout/
