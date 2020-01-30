@@ -1,0 +1,14 @@
+version: '3'
+services:
+  dscin:
+    build: dscin/
+  thmani:
+    build: thmani/
+  dscout:
+    build: dscout/
+  rabbitmq:
+    hostname: rabbitmq
+    image: "rabbitmq:3.8.2-management-alpine"
+    ports:
+      - '5672:5672'
+      - '15672:15672'
