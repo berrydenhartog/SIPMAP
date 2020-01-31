@@ -4,7 +4,7 @@
 To run the prototype please install docker.io and docker-compose. 
 Make sure you have an internet connection. 
 
-You can start an example by going in a Example and type:
+You can start an example by going in a directory and type:
  - docker-compose build
  - docker-compose up
 
@@ -22,8 +22,11 @@ If we want something to be processed faster we could add two operations to the s
 
 I would recommend using a general and flexible JSON format. But if this is to slow you could try another format. 
 
-# but what about SIGNAR and SAF then
+# The idea for SIGNAR and SAF then
 We could do two things with SAF/SIGNAR. We could add a REDIS service where we can store and get SAF files. the key would be JOBID_SAFNAM. But the other, and in my opinion the best, would be to use RabbitMQ. Rabbitmq has 'exchanges' and queues on these exchanges. we could make a trace exchange, a saf exchange, sqsaf exchange and signar exchange. Since queues allow us to filter message, we can only extract the message with the correct SAF file. Frame would build up the SAF file as it always did in the preperation phase, and sends to rabbitmq when done. Another operation reads this queue and waits untill the correct SAF file passes by. It then reads the SAF file and goes to the execution phase. 
+
+# The idea for HistoryHeader
+same as SAF
 
 # getting from a deck to a workflow
 We will need to create a script thats converts a DECK to a docker-compose.yml file. It should split all the operation cards and store it either as a file or environmental variable. The card number needs to be saved as an environmental variable because we will use this to setup the queues.
