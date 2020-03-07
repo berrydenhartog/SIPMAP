@@ -1,12 +1,16 @@
 version: '3'
 services:
   dscin:
+    hostname: "dscin"
     build: dscin/
   thmani1:
+    hostname: "thmani1"
     build: thmani/
   thmani2:
+    hostname: "thmani2"
     build: thmani/
   dscout:
+    hostname: "dscout"
     build: dscout/
   rabbitmq:
     hostname: rabbitmq

@@ -15,10 +15,37 @@ except Exception as e:
 # setup channel
 channel = connection.channel()
 
+#setup excahnges
+
+channel.exchange_declare(exchange='traces', exchange_type='direct')
+channel.exchange_declare(exchange='dscin', exchange_type='direct')
+
 # check if queue exist. else create
-channel.queue_declare(queue='DSCIN')
+outqueue = channel.queue_declare(queue='DSCIN')
+outhhqueue= channel.queue_declare(queue='HHDSCIN')
 
+# bind a queue to an exchange
+channel.queue_bind(exchange='traces',
+                   queue=outqueue.method.queue)
+channel.queue_bind(exchange='dscin',
+                   queue=outhhqueue.method.queue,
+                   routing_key="DSCIN.historyheader")
 
+############### preperation phase
+print("sending historyheader", flush=True)
+history_header={
+    "VERSION": 1.0
+}
+channel.basic_publish(exchange='dscin', 
+                    routing_key='DSCIN.historyheader', 
+                    body=json.dumps(history_header),
+)
+channel.basic_publish(exchange='dscin', 
+                    routing_key='DSCIN.historyheader', 
+                    body=json.dumps(history_header),
+)
+
+############### execution phase
 trace={
     "VERSION": 1.0,
     "TRACEHEADER": {
@@ -37,10 +64,10 @@ trace={
 for i in range(0,100):
     print("sending trace",i, flush=True)
     trace["TRACEHEADER"]["SEQ"]=i
-    channel.basic_publish(exchange='', routing_key='DSCIN', body=json.dumps(trace))
+    channel.basic_publish(exchange='traces', routing_key='DSCIN', body=json.dumps(trace))
 
 # send end of data 
-channel.basic_publish(exchange='', routing_key='DSCIN', body=json.dumps({"END":True}))
+channel.basic_publish(exchange='traces', routing_key='DSCIN', body=json.dumps({"END":True}))
 
 # close connection
 connection.close()

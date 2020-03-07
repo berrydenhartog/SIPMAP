@@ -15,11 +15,33 @@ except Exception as e:
 # setup channel
 channel = connection.channel()
 
-# check if queue exist. else create
-channel.queue_declare(queue='THMANI')
+# setup exchange
+channel.exchange_declare(exchange='traces', exchange_type='direct')
+channel.exchange_declare(exchange='thmani', exchange_type='direct')
 
-# get traces
-for method_frame, properties, body in channel.consume('THMANI'):
+# check if queue exist. else create
+inqueue = channel.queue_declare(queue='THMANI')
+inhhqueue = channel.queue_declare(queue='HHTHMANI')
+
+# bind a queue to an exchange
+channel.queue_bind(exchange='traces',
+                   queue=inqueue.method.queue)
+channel.queue_bind(exchange='thmani',
+                   queue=inhhqueue.method.queue,
+                   routing_key="THMANI.historyheader")
+
+
+################ preperation phase
+for method_frame, properties, body in channel.consume(inhhqueue.method.queue):
+    myhistoryheader = json.loads(body)
+    print("DSCOUT history header" + json.dumps(myhistoryheader), flush=True)
+    break
+
+channel.close()
+channel = connection.channel()
+
+################ execution phase
+for method_frame, properties, body in channel.consume(inqueue.method.queue):
 
     #Receive trace from DSCIN
     mytrace = json.loads(body)

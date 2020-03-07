@@ -13,7 +13,7 @@ Before running the prototype please install docker.io and docker-compose.
 
 To run the example do the following:
  ```
-    cd <NormalFlow|ParallelFlow>
+    cd <NormalFlow|ParallelFlow|FanoutFlow>
     docker-compose build
     docker-compose up
  ```
@@ -59,6 +59,8 @@ saveit is used to pass information from one operation to another, i would not re
 # Notes
 ## possible issues
 One major issue will be operations communicating through common blocks. If this happens they must be uncoupled or bundled.
+
+Another issue could be the expiration of messages. 
 
 ## Docker's
 We can choose to make every operation a separate executable, but it would be better manageable if we use dockers. In docker you can attach version's to the docker file and save them in a docker registry like [harbor](https://goharbor.io/). Examples:
