@@ -1,44 +1,83 @@
 # SIPMAP
+This is a prototype to show how SIPMAP could be transformed from one huge application to operation services. Making it's operations Async, cloud ready and program language agnostic.
 
-# Running the prototype
-To run the prototype please install docker.io and docker-compose. 
-Make sure you have an internet connection. 
+If this change is done new operations can be fully decoupled from frame, meaning any researcher, programmer or user could write a quick plug-in. They will only need to be able to accept messages from a queue in a standardized format. 
 
-You can start an example by going in a directory and type:
- - docker-compose build
- - docker-compose up
+Another benefit is that you can optimize workflows. When working with queues you can see where the queues start to build up. If this happens you could choose to start more operation of the same type, sharing the load. This could decrease the overall time.  
 
-# current examples:
-NormalFlow: Example using DSCIN, THMANI and DSCOUT. It runs rabbitmq and all operation in ASYNC. i choose to build the prototype in python because this develops faster. The real deal should be written in c or c++ and needs fortran wrappers so we can integrate it into frame. 
+# Running the examples
+Before running the prototype please install docker.io and docker-compose. 
+ ```
+  apt install docker.io docker-compose
+```
 
-ParallelFlow: Same as NormalFlow but THMANI runs parallen reading the queus with 2 workers sharing the load. In theory you can add any number of workers.
+To run the example do the following:
+ ```
+    cd <NormalFlow|ParallelFlow>
+    docker-compose build
+    docker-compose up
+ ```
 
-# The idea for SSF and SQSAF
-The general idea is to use rabbitmq as handler for the traces/SQSAF. So a operation pushes a trace/SQSAF to frame, frame then takes it from IAR and puts it in a JSON format and puts it into Rabbitmq. another operation reads the traces from the queue and puts it in IAR. FRAME will still do all other things it always did. 
+# Examples
+## NormalFlow
+This prototype is using DSCIN, THMANI and DSCOUT. It runs rabbitmq and all operation in ASYNC. i choose to build the prototype in python because this develops faster. The real deal should be written in c or c++ and needs fortran wrappers so we can integrate it into frame. 
 
-Since rabbitmq is async and will run next to SIPMAP, and every operation gets its own queue where the name is based on the jobid and the cardnumber (based from the original deck). It could all work async. The only thing left to do is make every operation its own executable. the operations will wait for traces to arive in the queue and processes them when they are available. 
+## ParallelFlow
+Same as NormalFlow but THMANI runs parallel reading the queues with 2 workers sharing the load.
 
-If we want something to be processed faster we could add two operations to the same queue. this will work directly for single trace operations. for panel operation we will propably need to add a special panel operation before the queue so every operation gets a whole panel. Running parallel could screw up the order of the traces. 
+## FanoutFlow
+TODO. Same as NormalFlow but THMANI runs parallel both reading the same data. 
 
-I would recommend using a general and flexible JSON format. But if this is to slow you could try another format. 
+# Which protocol: JSON or Protobuf
+This example is written with JSON. Protobuf would be a better solution when implementing this because of the performance gains. Especially when handling allot of data. 
+
+# Which message queue
+[RabbitMQ](https://www.rabbitmq.com/devtools.html) or [Kafka](https://kafka.apache.org/). If you want to have history use Kafka. 
+
+# The idea for SSF traces and SQSAF data
+The general idea is to use a message broker as handler for the traces/SQSAF. So a operation pushes a trace/SQSAF to frame, frame takes it from IAR and puts it in a JSON/PROTOBUF format and puts it into Rabbitmq. another operation reads the traces from the queue and puts it in IAR. FRAME will still do all other things it always did like DISC7, Memory management etc. 
 
 # The idea for SIGNAR and SAF then
-We could do two things with SAF/SIGNAR. We could add a REDIS service where we can store and get SAF files. the key would be JOBID_SAFNAM. But the other, and in my opinion the best, would be to use RabbitMQ. Rabbitmq has 'exchanges' and queues on these exchanges. we could make a trace exchange, a saf exchange, sqsaf exchange and signar exchange. Since queues allow us to filter message, we can only extract the message with the correct SAF file. Frame would build up the SAF file as it always did in the preperation phase, and sends to rabbitmq when done. Another operation reads this queue and waits untill the correct SAF file passes by. It then reads the SAF file and goes to the execution phase. 
+Rabbitmq has 'exchanges' and queues on these exchanges. we could make a trace exchange, a saf exchange, sqsaf exchange and signar exchange. Since queues allow us to filter message, we can only extract the message with the correct SAFID or SIGNAR id. Frame would build up the SAF file as it always did in the preparation phase, and sends to rabbitmq when done. Another operation reads this queue and waits until the correct SAF file passes by. It then reads the SAF file and goes to the execution phase. 
 
 # The idea for HistoryHeader
 same as SAF
 
 # getting from a deck to a workflow
-We will need to create a script thats converts a DECK to a docker-compose.yml file. It should split all the operation cards and store it either as a file or environmental variable. The card number needs to be saved as an environmental variable because we will use this to setup the queues.
-
-# RABBITMQ
-management console is available here: http://localhost:15672/
-login: guest,guest
+We will need to create a script that converts a DECK to a docker-compose.yml file. It should split all the operation cards and store it either as a file or environmental variable. The card number needs to be saved as an environmental variable because we will use this to setup the queues.
 
 # special operations
 ## PARSTR
-using a fanout exchange will be similair to how PARSTR works now
+using a fanout exchange will be similar to how PARSTR works now
+
+## SIPIO
+Not needed anymore because this is done by rabbitmq
 
 ## SAVEIT
-saveit is used to pass information from one operaton to another, i would not recommend porting this operation, but if you do, you could use a queus of key value store 
+saveit is used to pass information from one operation to another, i would not recommend porting this operation, but if you do, you could use a key value store 
+
+# Notes
+## possible issues
+One major issue will be operations communicating through common blocks. If this happens they must be uncoupled or bundled.
+
+## Docker's
+We can choose to make every operation a separate executable, but it would be better manageable if we use dockers. In docker you can attach version's to the docker file and save them in a docker registry like [harbor](https://goharbor.io/). Examples:
+```
+   sipmap/thmani:202001
+   sipmap/thmani:202003
+   sipmap/thmani:202003-1
+   sipmap/thmani:1.0.0
+   sipmap/thmani:latest
+   sipmap/thmani:dev
+   sipmap/thmani:prod
+```
+When we save the docker images in a registry like this every user can choose per operation which version he would like to use. the default could be prod. I would recommend moving away from the old method of versioning where we use the year and month and move to an official versioning scheme for major,minor and patches. and then use prod and dev to switch between production and development dockers. 
+
+## Message Passing Interface
+MPI will only be needed for specific operations. I would recommend adding IFDEFS around the code in frame and only build it for the operations that needed it. 
+
+
+## RABBITMQ management console
+management console is available here: http://localhost:15672/
+login: guest,guest
 
