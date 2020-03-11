@@ -1,0 +1,8 @@
+version: '3'
+services:
+  protobuf:
+    build: .
+    command: protoc -I=/src/ --python_out=/result/ /src/sipmap.proto
+    volumes:
+      - ./src/:/src/
+      - ./result/:/result/
