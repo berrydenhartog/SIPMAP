@@ -1,1 +1,26 @@
 syntax = "proto3";
+
+message HistoryHeader {
+  int32 somethingusefull = 1;
+}
+
+message Trace {
+    TraceHeader traceheader = 1;
+    repeated TraceData32 tracedata32 = 2;
+    repeated TraceData64 tracedata64 = 3;
+}
+
+message TraceHeader {
+    string ssp = 1;
+    int64 pos = 2;
+    int64 seq = 3;
+}
+
+message TraceData64 {
+    double data = 1;
+}
+
+message TraceData32 {
+    float data = 1;
+}
+
